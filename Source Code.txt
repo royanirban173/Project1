@@ -1,0 +1,118 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+df =pd.read_csv('https://raw.githubusercontent.com/jackiekazil/data-wrangling/master/data/chp3/data-text.csv')
+
+df.head(2)
+
+df1 =pd.read_csv('https://raw.githubusercontent.com/kjam/data-wrangling-pycon/master/data/berlin_weather_oldest.csv')
+
+#1.
+
+df.info()
+df1.info()
+
+#2
+
+np.array(df.index)
+np.array(df1.index)
+
+#3
+
+df.rename(columns={'Indicator':'Indicator_id'})
+
+#4
+
+df.rename(columns={'Indicator':'Indicator_id'},inplace=True)
+
+#5
+
+df.rename(columns={'PUBLISH STATES':'Publication Status','WHO region':'WHO Region'},inplace=True)
+
+#6
+df.sort_values(['Year'])
+
+#7
+df.sort_values(['Indicator_id','Country','Year'])
+
+#8
+
+lst1=df.columns.values.tolist()
+order=[5,0,1,2,3,4,6,7,8,9,10,11]
+[lst1[i] for i in order]
+df=df[[lst1[i] for i in order]]
+df.head(2)
+
+
+#9
+
+country_var=np.array(df.Country)
+country_var
+
+#10
+df.iloc[[11,24,37],:]
+
+#11
+df[(df.index!=5)&(df.index!=12)&(df.index!=23)&(df.index!=56)]
+
+#12
+pd.merge(transactions,users,how='left',on='UserID')
+
+#13
+
+from pandasql import sqldf
+pysqldf=lambda q:sqldf(q,globals())
+pysqldf("SELECT * FROM transactions where UserID not in (SELECT DISTINCT UserID from users) or UserID is null")
+
+#14
+
+pd.merge(transactions,users,how='inner',on='UserID')
+
+#15
+
+pd.merge(transactions,users,how='outer',on='UserID')
+
+#16
+
+pysqldf("Select users.*,sessions.* from users,sessions where users.UserID=sessions.UserID and users.Registered=sessions.SessionDate")
+
+#17
+
+pysqldf("Select Users.UserID,products.ProductID from users,products")
+
+#18
+
+pysqldf("Select transactions.UserID,products.ProductID,sum(transactions.Quantity) Quantity from transactions,products  where transactions.ProductID=products.ProductID group by transactions.UserID,products.ProductID")
+
+#19
+
+pysqldf("Select t.*,tr.* from transactions t,transactions tr  where t.UserID=tr.UserID order by t.userID desc")
+
+#20
+
+user_tran=pd.merge(users,transactions,how='left',on='UserID')
+pysqldf("Select *,min(TransactionDate) First_Transaction_Dt from user_tran group by UserID")
+
+#21
+users.drop(['Cancelled','Gender'],axis=1).head(2)
+dfx=pysqldf("Select *,min(TransactionDate) First_Transaction_Dt from user_tran group by UserID")
+dfx.isnull().columns
+list(dfx.dropna(thresh=int(dfx.shape[0] * .9), axis=1).columns) #set threshold to drop NAs
+dfx.isnull().any()
+
+print("number missing for column Cancelled: "+str(dfx[dfx.Cancelled.isnull()].shape[0]))
+print("number missing for column TransactionID: "+str(dfx[dfx.TransactionID.isnull()].shape[0]))
+print("number missing for column TransactionDate: "+str(dfx[dfx.TransactionDate.isnull()].shape[0]))
+print("number missing for column ProductID: "+str(dfx[dfx.ProductID.isnull()].shape[0]))
+print("number missing for column Quantity: "+str(dfx[dfx.Quantity.isnull()].shape[0]))
+
+
+print("percent missing for column Cancelled: "+str(dfx[dfx.Cancelled.isnull()].shape[0]/dfx.Cancelled.shape[0]))
+print("percent missing for column TransactionID: "+str(dfx[dfx.TransactionID.isnull()].shape[0]/dfx.TransactionID.shape[0]))
+print("percent missing for column TransactionDate: "+str(dfx[dfx.TransactionDate.isnull()].shape[0]/dfx.TransactionDate.shape[0]))
+print("percent missing for column ProductID: "+str(dfx[dfx.ProductID.isnull()].shape[0]/dfx.ProductID.shape[0]))
+print("percent missing for column Quantity: "+str(dfx[dfx.Quantity.isnull()].shape[0]/dfx.Quantity.shape[0]))
+
+
